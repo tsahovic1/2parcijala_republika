@@ -4,38 +4,43 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class IspitGradTest {
+// Osnovni test klasa Drzava, Kraljevina i Republika
+class IspitDrzavaTest {
     @Test
-    void testRazvijeniGrad() {
-        Grad grad = new RazvijeniGrad();
-        grad.setNaziv("Berlin");
-        grad.setBrojStanovnika(1000000);
-        assertEquals(100, grad.brojBolnica());
-        // Rodio se novi građanin
-        grad.setBrojStanovnika(1000001);
-        assertEquals(101, grad.brojBolnica());
+    void testKraljevina() {
+        Drzava vbr = new Kraljevina();
+        vbr.setNaziv("Velika Britanija");
+        Grad london = new Grad(1, "London", 8825000, vbr);
+        vbr.setGlavniGrad(london);
+        assertEquals("Kraljevina Velika Britanija", vbr.getNaziv());
+        assertEquals("London", vbr.getGlavniGrad().getNaziv());
+        assertEquals("Kraljevina Velika Britanija", london.getDrzava().getNaziv());
+        assertFalse(vbr instanceof Republika);
     }
 
     @Test
-    void testNerazvijeniGrad() {
-        Grad grad = new NerazvijeniGrad();
-        grad.setNaziv("Mogadishu");
-        grad.setBrojStanovnika(700000);
-        assertEquals(7, grad.brojBolnica());
-        // Rodio se novi građanin
-        grad.setBrojStanovnika(700001);
-        assertEquals(8, grad.brojBolnica());
+    void testRepublika() {
+        Grad pariz = new Grad(1, "Pariz", 2206488, null);
+        Drzava francuska = new Republika(1, "Francuska", pariz);
+        pariz.setDrzava(francuska);
+        assertEquals("Republika Francuska", francuska.getNaziv());
+        assertEquals("Pariz", francuska.getGlavniGrad().getNaziv());
+        assertEquals("Republika Francuska", pariz.getDrzava().getNaziv());
+        assertFalse(francuska instanceof Kraljevina);
     }
 
     @Test
-    void testSrednjeRazvijeniGrad() {
-        Grad grad = new SrednjeRazvijeniGrad();
-        grad.setNaziv("Zenica");
-        grad.setBrojStanovnika(100000);
-        assertEquals(4, grad.brojBolnica());
-        // Rodio se novi građanin
-        grad.setBrojStanovnika(100001);
-        assertEquals(5, grad.brojBolnica());
+    void testDrzava() {
+        Drzava bih = new Drzava();
+        bih.setNaziv("Bosna i Hercegovina");
+        Grad sarajevo = new Grad(1, "Sarajevo", 500000, bih);
+        bih.setGlavniGrad(sarajevo);
+        assertEquals("Bosna i Hercegovina", bih.getNaziv());
+        assertEquals("Sarajevo", bih.getGlavniGrad().getNaziv());
+        assertEquals("Bosna i Hercegovina", sarajevo.getDrzava().getNaziv());
+        assertFalse(bih instanceof Republika);
+        assertFalse(bih instanceof Kraljevina);
     }
 
-}*/
+}
+*/

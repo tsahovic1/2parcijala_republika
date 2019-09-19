@@ -3,128 +3,95 @@
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Testovi DAO klase
+// Pobrinite se najprije da prolaze testovi u klasi IspitDrzavaTest
 public class IspitDAOTest {
 
     @Test
-    void testIzmijeniGrad() {
+    void testDodajDrzavu() {
         GeografijaDAO.removeInstance();
         File dbfile = new File("baza.db");
         dbfile.delete();
 
         GeografijaDAO dao = GeografijaDAO.getInstance();
-        Grad bech = dao.glavniGrad("Austrija");
-        NerazvijeniGrad b2 = new NerazvijeniGrad(bech.getId(), bech.getNaziv(), 800001, bech.getDrzava());
-        dao.izmijeniGrad(b2);
 
-        Grad b3 = dao.glavniGrad("Austrija");
-        assertTrue(b3 instanceof NerazvijeniGrad);
-        assertEquals(9, b3.brojBolnica());
+        // Najprije moramo kreirati grad koji će biti glavni grad nove države
+        Drzava francuska = dao.nadjiDrzavu("Francuska");
+        Grad zagreb = new Grad(0, "Zagreb", 1000000, francuska);
+        dao.dodajGrad(zagreb);
+
+        // Uzimamo novu referencu da bi ona imala korektan id
+        Grad zg2 = dao.nadjiGrad("Zagreb");
+        Drzava hrvatska = new Republika(0, "Hrvatska", zg2);
+        dao.dodajDrzavu(hrvatska);
+
+        assertEquals(4, dao.drzave().size());
+
+        Drzava hr2 = dao.nadjiDrzavu("Hrvatska");
+        assertNotNull(hr2);
+        assertEquals("Republika Hrvatska", hr2.getNaziv());
     }
-
-   @Test
-    void testDodajGrad() {
-        GeografijaDAO.removeInstance();
-        File dbfile = new File("baza.db");
-        dbfile.delete();
-
-        GeografijaDAO dao = GeografijaDAO.getInstance();
-        Drzava vb = dao.nadjiDrzavu("Velika Britanija");
-        SrednjeRazvijeniGrad leeds = new SrednjeRazvijeniGrad(0, "Leeds", 350000, vb);
-
-        dao.dodajGrad(leeds);
-
-        Grad s2 = null;
-        for(Grad grad : dao.gradovi()) {
-            if (grad.getNaziv().equals("Leeds"))
-                s2 = grad;
-        }
-        assertNotNull(s2);
-
-        assertTrue(s2 instanceof SrednjeRazvijeniGrad);
-        assertEquals(14, s2.brojBolnica());
-    }
-
 
     @Test
-    void testNadjiGrad() {
+    void testIzmijeniDrzavu() {
         GeografijaDAO.removeInstance();
         File dbfile = new File("baza.db");
         dbfile.delete();
 
+        // Uzimamo državu preko glavnog grada
         GeografijaDAO dao = GeografijaDAO.getInstance();
-        Drzava vb = dao.nadjiDrzavu("Velika Britanija");
-        SrednjeRazvijeniGrad leeds = new SrednjeRazvijeniGrad(0, "Leeds", 350000, vb);
+        Grad pariz = dao.glavniGrad("Francuska");
+        Drzava francuska = pariz.getDrzava();
+        // Nećemo da Francuska bude unaprijed postavljena kao republika jer bi to bilo "varanje"
+        assertFalse(francuska instanceof Republika);
 
-        dao.dodajGrad(leeds);
+        Drzava francuskaRepublika = new Republika(francuska.getId(), francuska.getNaziv(), francuska.getGlavniGrad());
+        dao.izmijeniDrzavu(francuskaRepublika);
 
-        Grad s2 = dao.nadjiGrad("Leeds");
-        assertNotNull(s2);
+        assertEquals(3, dao.drzave().size());
 
-        assertTrue(s2 instanceof SrednjeRazvijeniGrad);
-        assertEquals(14, s2.brojBolnica());
+        Grad p2 = dao.glavniGrad("Francuska");
+        Drzava d2 = p2.getDrzava();
+        assertTrue(d2 instanceof Republika);
+        assertEquals("Republika Francuska", d2.getNaziv());
     }
-
 
     @Test
-    void testNadjiDrzavu() {
+    void testIzmijeniDrzavuDvaput() {
         GeografijaDAO.removeInstance();
         File dbfile = new File("baza.db");
         dbfile.delete();
 
         GeografijaDAO dao = GeografijaDAO.getInstance();
+
         Drzava vb = dao.nadjiDrzavu("Velika Britanija");
-        NerazvijeniGrad sarajevo = new NerazvijeniGrad(0, "Sarajevo", 350000, vb);
+        // Nećemo da Velika Britanija bude unaprijed postavljena kao kraljevina jer bi to bilo "varanje"
+        assertFalse(vb instanceof Kraljevina);
+        Drzava vb2 = new Kraljevina(vb.getId(), vb.getNaziv(), vb.getGlavniGrad());
+        dao.izmijeniDrzavu(vb2);
 
-        dao.dodajGrad(sarajevo);
+        System.out.println("Drugi poziv nadjiDrzavu");
+        Drzava vb3 = dao.nadjiDrzavu("Velika Britanija");
+        assertEquals("Kraljevina Velika Britanija", vb3.getNaziv());
+        assertTrue(vb3 instanceof Kraljevina);
 
-        Grad s2 = dao.nadjiGrad("Sarajevo");
-        assertNotNull(s2);
+        // Ponovo pozivamo izmijeni drzavu
+        vb3.setNaziv("Velika Britanija i Sjeverna Irska");
+        dao.izmijeniDrzavu(vb3);
 
-        Drzava bih = new Drzava(0, "Bosna i Hercegovina", s2);
-        dao.dodajDrzavu(bih);
+        Drzava vb4 = dao.nadjiDrzavu("Velika Britanija i Sjeverna Irska");
+        assertNotNull(vb4);
+        assertEquals("Kraljevina Velika Britanija i Sjeverna Irska", vb4.getNaziv());
 
-        Drzava d2 = dao.nadjiDrzavu("Bosna i Hercegovina");
-        assertNotNull(d2);
-
-        Grad s3 = d2.getGlavniGrad();
-        assertTrue(s2 instanceof NerazvijeniGrad);
-        assertEquals(35, s3.brojBolnica());
+        // Da li se izmjena aplicirala i na grad
+        Grad london = dao.nadjiGrad("London");
+        Drzava vb5 = london.getDrzava();
+        assertEquals("Kraljevina Velika Britanija i Sjeverna Irska", vb5.getNaziv());
     }
 
-
-    @Test
-    void testPromjenaTipa() {
-        GeografijaDAO.removeInstance();
-        File dbfile = new File("baza.db");
-        dbfile.delete();
-
-        GeografijaDAO dao = GeografijaDAO.getInstance();
-        Drzava vb = dao.nadjiDrzavu("Velika Britanija");
-        SrednjeRazvijeniGrad leeds = new SrednjeRazvijeniGrad(0, "Leeds", 350000, vb);
-
-        dao.dodajGrad(leeds);
-
-        Grad s2 = dao.nadjiGrad("Leeds");
-        assertNotNull(s2);
-
-        assertTrue(s2 instanceof SrednjeRazvijeniGrad);
-
-        RazvijeniGrad l2 = new RazvijeniGrad(leeds.getId(), "Leeds", 350000, vb);
-        dao.izmijeniGrad(l2);;
-
-        Grad s3 = dao.nadjiGrad("Leeds");
-        assertNotNull(s3);
-
-        assertTrue(s3 instanceof RazvijeniGrad);
-
-    }
 }
+
 */

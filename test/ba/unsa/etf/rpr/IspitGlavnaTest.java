@@ -17,6 +17,8 @@ import org.testfx.framework.junit5.Start;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static org.junit.jupiter.api.Assertions.*;
 
+// Testovi glavne forme
+// Pobrinite se najprije da prolaze testovi u ostalim Ispit* klasama
 @ExtendWith(ApplicationExtension.class)
 public class IspitGlavnaTest {
     Stage theStage;
@@ -39,68 +41,88 @@ public class IspitGlavnaTest {
     }
 
     @Test
-    public void testDodajGradNerazvijeni(FxRobot robot) {
+    public void testDodajDrzavu(FxRobot robot) {
         ctrl.resetujBazu();
 
         // Otvaranje forme za dodavanje
-        robot.clickOn("#btnDodajGrad");
+        robot.clickOn("#btnDodajDrzavu");
 
         // Čekamo da dijalog postane vidljiv
         robot.lookup("#fieldNaziv").tryQuery().isPresent();
 
         // Postoji li fieldNaziv
         robot.clickOn("#fieldNaziv");
-        robot.write("Sarajevo");
+        robot.write("Hrvatska");
 
-        robot.clickOn("#fieldBrojStanovnika");
-        robot.write("350000");
-
-        robot.clickOn("#choiceTipGrada");
-        robot.clickOn("Nerazvijen");
+        robot.clickOn("#tglRepublika");
 
         // Klik na dugme Ok
         robot.clickOn("#btnOk");
 
-        // Da li je Sarajevo dodano u bazu?
+        // Da li je Hrvatska dodana u bazu?
         GeografijaDAO dao = GeografijaDAO.getInstance();
-        assertEquals(6, dao.gradovi().size());
+        assertEquals(4, dao.drzave().size());
 
-        Grad sarajevo = null;
-        for(Grad grad : dao.gradovi())
-            if (grad.getNaziv().equals("Sarajevo"))
-                sarajevo = grad;
-        assertNotNull(sarajevo);
-        assertTrue(sarajevo instanceof NerazvijeniGrad);
-
-        assertEquals(35, sarajevo.brojBolnica());
+        Drzava hrvatska = null;
+        for(Drzava drzava : dao.drzave())
+            if (drzava.getNaziv().equals("Republika Hrvatska"))
+                hrvatska = drzava;
+        assertNotNull(hrvatska);
+        assertTrue(hrvatska instanceof Republika);
     }
 
     @Test
-    public void testIzmijeniTipGrada(FxRobot robot) {
+    public void testIzmijeniDrzavu(FxRobot robot) {
         ctrl.resetujBazu();
 
-        // Graz ne smije biti nerazvijen jer je to "varanje"
+        // Velika Britanija ne smije biti kraljevina jer je to "varanje"
         GeografijaDAO dao = GeografijaDAO.getInstance();
-        Grad graz = dao.nadjiGrad("Graz");
-        assertFalse(graz instanceof NerazvijeniGrad);
+        Drzava vb = dao.nadjiDrzavu("Velika Britanija");
+        assertFalse(vb instanceof Kraljevina);
 
-        // Mijenjamo grad Graz
-        robot.clickOn("Graz");
-        robot.clickOn("#btnIzmijeniGrad");
+        // Mijenjamo državu za grad London
+        robot.clickOn("London");
+        robot.clickOn("#btnIzmijeniDrzavu");
 
         // Čekamo da dijalog postane vidljiv
-        robot.clickOn("#choiceTipGrada");
-        robot.clickOn("Nerazvijen");
+        robot.lookup("#fieldNaziv").tryQuery().isPresent();
+
+        robot.clickOn("#tglKraljevina");
 
         // Klik na dugme Ok
         robot.clickOn("#btnOk");
 
-        // Da li je Graz nerazvijeni grad?
-        Grad graz2 = dao.nadjiGrad("Graz");
-        assertTrue(graz2 instanceof NerazvijeniGrad);
-        assertEquals(28, graz2.brojBolnica());
+        // Da li je Velika Britanija kraljevina?
+        Drzava vb2 = dao.nadjiDrzavu("Velika Britanija");
+        assertTrue(vb2 instanceof Kraljevina);
     }
 
+    @Test
+    public void testIzmijeniDrzavu2(FxRobot robot) {
+        ctrl.resetujBazu();
+
+        // Francuska ne smije biti republika jer je to "varanje"
+        GeografijaDAO dao = GeografijaDAO.getInstance();
+        Drzava francuska = dao.nadjiDrzavu("Francuska");
+        assertFalse(francuska instanceof Republika);
+
+        // Mijenjamo državu za grad Pariz
+        robot.clickOn("Pariz");
+        robot.clickOn("#btnIzmijeniDrzavu");
+
+        // Čekamo da dijalog postane vidljiv
+        robot.lookup("#fieldNaziv").tryQuery().isPresent();
+
+        robot.clickOn("#tglRepublika");
+
+        // Klik na dugme Ok
+        robot.clickOn("#btnOk");
+
+        // Da li je Francuska republika?
+        Drzava francuska2 = dao.nadjiDrzavu("Francuska");
+        assertTrue(francuska2 instanceof Republika);
+    }
 
 }
+
 */
