@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -15,6 +16,9 @@ public class DrzavaController {
     public ChoiceBox<Grad> choiceGrad;
     private Drzava drzava;
     private ObservableList<Grad> listGradovi;
+    public RadioButton tglRepublika;
+    public RadioButton tglKraljevina;
+    public RadioButton tglDrzava;
 
     public DrzavaController(Drzava drzava, ArrayList<Grad> gradovi) {
         this.drzava = drzava;
@@ -25,16 +29,36 @@ public class DrzavaController {
     public void initialize() {
         choiceGrad.setItems(listGradovi);
         if (drzava != null) {
-            fieldNaziv.setText(drzava.getNaziv());
+            fieldNaziv.setText(drzava.getPraviNaziv());
             //choiceGrad.getSelectionModel().select(drzava.getGlavniGrad());
             // ovo ne radi jer grad.getDrzava() nije identički jednak objekat kao član listDrzave
 
             for(int i=0; i < listGradovi.size(); i++)
                 if (listGradovi.get(i).getId() == drzava.getGlavniGrad().getId())
                     choiceGrad.getSelectionModel().select(i);
+
+            if(drzava instanceof Republika){
+                tglDrzava.setSelected(false);
+                tglRepublika.setSelected(true);
+                tglKraljevina.setSelected(false);
+            }else if(drzava instanceof Kraljevina){
+                tglDrzava.setSelected(false);
+                tglRepublika.setSelected(false);
+                tglKraljevina.setSelected(true);
+            }else{
+                tglDrzava.setSelected(true);
+                tglRepublika.setSelected(false);
+                tglKraljevina.setSelected(false);
+            }
         } else {
+            tglDrzava.setSelected(true);
+            tglRepublika.setSelected(false);
+            tglKraljevina.setSelected(false);
             choiceGrad.getSelectionModel().selectFirst();
+
         }
+
+
     }
 
     public Drzava getDrzava() {
@@ -55,9 +79,12 @@ public class DrzavaController {
 
         if (!sveOk) return;
 
-        if (drzava == null) drzava = new Drzava();
-        drzava.setNaziv(fieldNaziv.getText());
-        drzava.setGlavniGrad(choiceGrad.getSelectionModel().getSelectedItem());
+        int id=0;
+        if (drzava != null) id=drzava.getId();
+
+        if(tglKraljevina.isSelected())  drzava = new Kraljevina(id, fieldNaziv.getText(), choiceGrad.getSelectionModel().getSelectedItem());
+        else if(tglRepublika.isSelected()) drzava = new Republika(id, fieldNaziv.getText(), choiceGrad.getSelectionModel().getSelectedItem());
+        else  drzava = new Drzava(id, fieldNaziv.getText(), choiceGrad.getSelectionModel().getSelectedItem());
         closeWindow();
     }
 

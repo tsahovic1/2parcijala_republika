@@ -12,7 +12,7 @@ public class GeografijaDAO {
 
     private PreparedStatement glavniGradUpit, dajDrzavuUpit, obrisiDrzavuUpit, obrisiGradoveZaDrzavuUpit, nadjiDrzavuUpit,
             dajGradoveUpit, dodajGradUpit, odrediIdGradaUpit, dodajDrzavuUpit, odrediIdDrzaveUpit, promijeniGradUpit, dajGradUpit,
-            nadjiGradUpit, obrisiGradUpit, dajDrzaveUpit;
+            nadjiGradUpit, obrisiGradUpit, dajDrzaveUpit, promijeniDrzavuUpit;
 
     public static GeografijaDAO getInstance() {
         if (instance == null) instance = new GeografijaDAO();
@@ -49,10 +49,11 @@ public class GeografijaDAO {
 
             dodajGradUpit = conn.prepareStatement("INSERT INTO grad VALUES(?,?,?,?)");
             odrediIdGradaUpit = conn.prepareStatement("SELECT MAX(id)+1 FROM grad");
-            dodajDrzavuUpit = conn.prepareStatement("INSERT INTO drzava VALUES(?,?,?)");
+            dodajDrzavuUpit = conn.prepareStatement("INSERT INTO drzava VALUES(?,?,?,?)");
             odrediIdDrzaveUpit = conn.prepareStatement("SELECT MAX(id)+1 FROM drzava");
 
             promijeniGradUpit = conn.prepareStatement("UPDATE grad SET naziv=?, broj_stanovnika=?, drzava=? WHERE id=?");
+            promijeniDrzavuUpit = conn.prepareStatement("UPDATE drzava SET naziv=?, glavni_grad=?, tip=? WHERE id=?");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -139,9 +140,18 @@ public class GeografijaDAO {
         }
 
     }
-
+//ovdje
     private Drzava dajDrzavuIzResultSeta(ResultSet rs, Grad grad) throws SQLException {
-        return new Drzava(rs.getInt(1), rs.getString(2), grad);
+        Drzava drz=null;
+        int tip=rs.getInt(4);
+        if(tip==1) {
+            drz = new Drzava(rs.getInt(1), rs.getString(2), grad);
+        }else if(tip==3){
+            drz = new Republika(rs.getInt(1), rs.getString(2), grad);
+        }else if(tip==2){
+            drz = new Kraljevina(rs.getInt(1), rs.getString(2), grad);
+        }
+        return drz;
     }
 
     public void obrisiDrzavu(String nazivDrzave) {
@@ -218,8 +228,12 @@ public class GeografijaDAO {
             }
 
             dodajDrzavuUpit.setInt(1, id);
-            dodajDrzavuUpit.setString(2, drzava.getNaziv());
+            dodajDrzavuUpit.setString(2, drzava.getPraviNaziv());
             dodajDrzavuUpit.setInt(3, drzava.getGlavniGrad().getId());
+
+            if(drzava instanceof Republika) dodajDrzavuUpit.setInt(4, 3);
+            else if(drzava instanceof Kraljevina) dodajDrzavuUpit.setInt(4, 2);
+            else dodajDrzavuUpit.setInt(4, 1);
             dodajDrzavuUpit.executeUpdate();
 
         } catch (SQLException e) {
@@ -234,6 +248,34 @@ public class GeografijaDAO {
             promijeniGradUpit.setInt(3, grad.getDrzava().getId());
             promijeniGradUpit.setInt(4, grad.getId());
             promijeniGradUpit.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void izmijeniDrzavu(Drzava drzava) {
+        try {
+//            promijeniDrzavuUpit.setString(1, drzava.getPraviNaziv());
+//            promijeniDrzavuUpit.setInt(2, drzava.getGlavniGrad().getId());
+//            if(drzava instanceof Republika) promijeniDrzavuUpit.setInt(3, 3);
+//            else if(drzava instanceof Kraljevina) promijeniDrzavuUpit.setInt(3, 4);
+//            else promijeniDrzavuUpit.setInt(3, 1);
+//            promijeniDrzavuUpit.setInt(4, drzava.getId());
+//            promijeniGradUpit.executeUpdate();
+
+            int tip = 1;
+            if (drzava instanceof Kraljevina)
+                tip = 2;
+            if (drzava instanceof Republika)
+                tip = 3;
+
+            System.out.println("Postavljam naziv države na "+drzava.getPraviNaziv());
+            promijeniDrzavuUpit.setString(1, drzava.getPraviNaziv());
+            promijeniDrzavuUpit.setInt(2, drzava.getGlavniGrad().getId());
+            promijeniDrzavuUpit.setInt(3, tip);
+            promijeniDrzavuUpit.setInt(4, drzava.getId());
+            promijeniDrzavuUpit.executeUpdate();
+
 
         } catch (SQLException e) {
             e.printStackTrace();

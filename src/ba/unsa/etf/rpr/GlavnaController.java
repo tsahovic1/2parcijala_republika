@@ -95,7 +95,44 @@ public class GlavnaController {
             e.printStackTrace();
         }
     }
+    public void actionIzmijeniDrzavu(ActionEvent actionEvent) {
+        Grad grad = tableViewGradovi.getSelectionModel().getSelectedItem();
+        if (grad == null) return;
+        Drzava drzava1= grad.getDrzava();
+        Stage stage = new Stage();
+        Parent root = null;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/drzava.fxml"));
+            DrzavaController drzavaController = new DrzavaController(drzava1, dao.gradovi());
+            loader.setController(drzavaController);
+            root = loader.load();
+            stage.setTitle("Država");
+            stage.setScene(new Scene(root, USE_COMPUTED_SIZE, USE_COMPUTED_SIZE));
+            stage.setResizable(false);
+            stage.show();
 
+            stage.setOnHiding( event -> {
+                Drzava drzava = drzavaController.getDrzava();
+                if (drzava != null) {
+                    dao.izmijeniDrzavu(drzava);
+                    listGradovi.setAll(dao.gradovi());
+                }
+            } );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Scene scene =tableViewGradovi.getScene();
+            GlavnaController ctrl = new GlavnaController();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/glavna.fxml"));
+            loader.setController(ctrl);
+            Parent root1 = null;
+            root1 = loader.load();
+            scene.setRoot(root1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public void actionIzmijeniGrad(ActionEvent actionEvent) {
         Grad grad = tableViewGradovi.getSelectionModel().getSelectedItem();
         if (grad == null) return;

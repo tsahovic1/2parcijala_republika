@@ -25,6 +25,7 @@ public class Drzava {
     public String getNaziv() {
         return naziv;
     }
+    public String getPraviNaziv(){ return naziv;}
 
     public void setNaziv(String naziv) {
         this.naziv = naziv;

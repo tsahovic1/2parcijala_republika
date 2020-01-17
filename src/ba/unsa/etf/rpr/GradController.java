@@ -24,6 +24,7 @@ public class GradController {
 
     @FXML
     public void initialize() {
+
         choiceDrzava.setItems(listDrzave);
         if (grad != null) {
             fieldNaziv.setText(grad.getNaziv());
